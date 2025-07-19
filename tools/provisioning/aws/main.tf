@@ -8,12 +8,11 @@ resource "aws_security_group" "allow_ssh" {
   name        = "${var.name}_allow_ssh"
   description = "AWS security group to allow SSH-ing onto AWS EC2 instances (created using Terraform)."
 
-  # Open TCP port for SSH:
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${var.client_ip}/32"]
+    cidr_blocks = ["${var.private_subnet_cidr_block}"]
   }
 
   tags {
@@ -100,38 +99,38 @@ resource "aws_security_group" "allow_all_egress" {
 }
 
 resource "aws_instance" "tf_test_vm" {
-  instance_type = "${var.aws_size}"
-  count         = "${var.num_hosts}"
+  instance_type = var.aws_size
+  count         = var.num_hosts
 
-  # Lookup the correct AMI based on the region we specified
-  ami = "${lookup(var.aws_amis, var.aws_dc)}"
+  ami = lookup(var.aws_amis, var.aws_dc)
 
-  key_name = "${var.aws_public_key_name}"
+  key_name = var.aws_public_key_name
 
   security_groups = [
-    "${aws_security_group.allow_ssh.name}",
-    "${aws_security_group.allow_docker.name}",
-    "${aws_security_group.allow_weave.name}",
-    "${aws_security_group.allow_private_ingress.name}",
-    "${aws_security_group.allow_all_egress.name}",
+    aws_security_group.allow_ssh.name,
+    aws_security_group.allow_docker.name,
+    aws_security_group.allow_weave.name,
+    aws_security_group.allow_private_ingress.name,
+    aws_security_group.allow_all_egress.name,
   ]
 
-  # Wait for machine to be SSH-able:
+  metadata_options {
+    http_tokens = "required"
+  }
+
   provisioner "remote-exec" {
     inline = ["exit"]
 
     connection {
       type = "ssh"
-
-      # Lookup the correct username based on the AMI we specified
-      user        = "${lookup(var.aws_usernames, "${lookup(var.aws_amis, var.aws_dc)}")}"
-      private_key = "${file("${var.aws_private_key_path}")}"
+      user        = lookup(var.aws_usernames, lookup(var.aws_amis, var.aws_dc))
+      private_key = file(var.aws_private_key_path)
     }
   }
 
   tags {
     Name      = "${var.name}-${count.index}"
-    App       = "${var.app}"
+    App       = var.app
     CreatedBy = "terraform"
   }
 }
