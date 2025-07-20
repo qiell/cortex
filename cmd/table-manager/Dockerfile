@@ -1,4 +1,4 @@
-FROM       alpine:3.8
+FROM alpine:3.9
 RUN        apk add --no-cache ca-certificates
 COPY       table-manager /bin/table-manager
 EXPOSE     9094
