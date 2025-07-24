@@ -16,6 +16,13 @@ resource "aws_security_group" "allow_ssh" {
     cidr_blocks = ["${var.client_ip}/32"]
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags {
     Name      = "${var.name}_allow_ssh"
     App       = "${var.app}"
@@ -83,6 +90,7 @@ resource "aws_security_group" "allow_private_ingress" {
 resource "aws_security_group" "allow_all_egress" {
   name        = "${var.name}_allow_all_egress"
   description = "AWS security group to allow all egress traffic on AWS EC2 instances (created using Terraform)."
+  vpc_id      = "${var.vpc_id}"
 
   # Full outbound internet access on both TCP and UDP
   egress {
@@ -127,6 +135,12 @@ resource "aws_instance" "tf_test_vm" {
       user        = "${lookup(var.aws_usernames, "${lookup(var.aws_amis, var.aws_dc)}")}"
       private_key = "${file("${var.aws_private_key_path}")}"
     }
+  }
+
+  monitoring = true
+
+  metadata_options {
+    http_tokens = "required"
   }
 
   tags {
