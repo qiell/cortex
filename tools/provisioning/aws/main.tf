@@ -129,6 +129,12 @@ resource "aws_instance" "tf_test_vm" {
     }
   }
 
+  monitoring = true
+
+  metadata_options {
+    http_tokens = "required"
+  }
+
   tags {
     Name      = "${var.name}-${count.index}"
     App       = "${var.app}"
