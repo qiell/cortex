@@ -16,6 +16,13 @@ resource "aws_security_group" "allow_ssh" {
     cidr_blocks = ["${var.client_ip}/32"]
   }
 
+  egress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags {
     Name      = "${var.name}_allow_ssh"
     App       = "${var.app}"
@@ -80,23 +87,16 @@ resource "aws_security_group" "allow_private_ingress" {
   }
 }
 
-resource "aws_security_group" "allow_all_egress" {
-  name        = "${var.name}_allow_all_egress"
-  description = "AWS security group to allow all egress traffic on AWS EC2 instances (created using Terraform)."
+resource "aws_vpc" "main" {
+  cidr_block = var.cidr_block
+}
 
-  # Full outbound internet access on both TCP and UDP
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+resource "aws_instance" "tf_test_vm" {
+  ...
+  metadata_options {
+    http_tokens = "required"
   }
-
-  tags {
-    Name      = "${var.name}_allow_all_egress"
-    App       = "${var.app}"
-    CreatedBy = "terraform"
-  }
+  ...
 }
 
 resource "aws_instance" "tf_test_vm" {
@@ -115,6 +115,8 @@ resource "aws_instance" "tf_test_vm" {
     "${aws_security_group.allow_private_ingress.name}",
     "${aws_security_group.allow_all_egress.name}",
   ]
+
+  monitoring = true
 
   # Wait for machine to be SSH-able:
   provisioner "remote-exec" {
