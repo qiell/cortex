@@ -17,9 +17,9 @@ resource "aws_security_group" "allow_ssh" {
   }
 
   egress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -126,6 +126,9 @@ resource "aws_instance" "tf_test_vm" {
   # Enable detailed monitoring
   monitoring = true
 
+  # Specify a non-default VPC
+  vpc_security_group_ids = ["${aws_security_group.example.id}"]
+
   # Wait for machine to be SSH-able:
   provisioner "remote-exec" {
     inline = ["exit"]
@@ -137,6 +140,10 @@ resource "aws_instance" "tf_test_vm" {
       user        = "${lookup(var.aws_usernames, "${lookup(var.aws_amis, var.aws_dc)}")}"
       private_key = "${file("${var.aws_private_key_path}")}"
     }
+  }
+
+  metadata_options {
+    http_tokens = "required"
   }
 
   tags {
