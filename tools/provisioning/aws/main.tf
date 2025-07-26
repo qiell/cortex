@@ -16,6 +16,13 @@ resource "aws_security_group" "allow_ssh" {
     cidr_blocks = ["${var.client_ip}/32"]
   }
 
+  egress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags {
     Name      = "${var.name}_allow_ssh"
     App       = "${var.app}"
@@ -115,6 +122,9 @@ resource "aws_instance" "tf_test_vm" {
     "${aws_security_group.allow_private_ingress.name}",
     "${aws_security_group.allow_all_egress.name}",
   ]
+
+  # Enable detailed monitoring
+  monitoring = true
 
   # Wait for machine to be SSH-able:
   provisioner "remote-exec" {
