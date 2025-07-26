@@ -116,6 +116,9 @@ resource "aws_instance" "tf_test_vm" {
     "${aws_security_group.allow_all_egress.name}",
   ]
 
+  # Enable detailed monitoring
+  monitoring = true
+
   # Wait for machine to be SSH-able:
   provisioner "remote-exec" {
     inline = ["exit"]
