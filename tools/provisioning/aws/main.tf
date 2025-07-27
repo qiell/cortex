@@ -115,16 +115,23 @@ resource "aws_instance" "tf_test_vm" {
 
   key_name = "${var.aws_public_key_name}"
 
-  security_groups = [
-    "${aws_security_group.allow_ssh.name}",
-    "${aws_security_group.allow_docker.name}",
-    "${aws_security_group.allow_weave.name}",
-    "${aws_security_group.allow_private_ingress.name}",
-    "${aws_security_group.allow_all_egress.name}",
+  vpc_security_group_ids = [
+    "${aws_security_group.allow_ssh.id}",
+    "${aws_security_group.allow_docker.id}",
+    "${aws_security_group.allow_weave.id}",
+    "${aws_security_group.allow_private_ingress.id}",
+    "${aws_security_group.allow_all_egress.id}",
   ]
+
+  subnet_id = "${var.subnet_id}"
 
   # Enable detailed monitoring
   monitoring = true
+
+  # Disable IMDS or require IMDSv2
+  metadata_options {
+    http_tokens = "required"
+  }
 
   # Wait for machine to be SSH-able:
   provisioner "remote-exec" {
