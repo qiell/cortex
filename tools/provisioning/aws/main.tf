@@ -17,9 +17,9 @@ resource "aws_security_group" "allow_ssh" {
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -126,6 +126,14 @@ resource "aws_instance" "tf_test_vm" {
   # Enable detailed monitoring
   monitoring = true
 
+  # Disable IMDS or require IMDSv2
+  metadata_options {
+    http_tokens = "required"
+  }
+
+  # Specify a non-default VPC
+  vpc_security_group_ids = ["${aws_security_group.example.id}"]
+
   # Wait for machine to be SSH-able:
   provisioner "remote-exec" {
     inline = ["exit"]
@@ -143,9 +151,5 @@ resource "aws_instance" "tf_test_vm" {
     Name      = "${var.name}-${count.index}"
     App       = "${var.app}"
     CreatedBy = "terraform"
-  }
-
-  metadata_options {
-    http_tokens = "required"
   }
 }
