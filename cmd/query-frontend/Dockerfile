@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 RUN        apk add --no-cache ca-certificates
 COPY       query-frontend /bin/query-frontend
 EXPOSE     80

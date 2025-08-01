@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 WORKDIR    /
 RUN        apk add --no-cache ca-certificates
 COPY       configs /bin/configs
